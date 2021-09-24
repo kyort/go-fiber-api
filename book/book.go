@@ -38,6 +38,41 @@ func NewBook(c *fiber.Ctx) error {
 
 	return c.JSON(book)
 }
+
+func UpdateBook(c *fiber.Ctx) error {
+	id := c.Params("id")
+	db := database.DBConn
+
+	change := false
+	var book Book
+	db.Find(&book, id)
+	newbook := new(Book)
+	if err := c.BodyParser(newbook); err != nil {
+		return c.Status(503).SendString(err.Error())
+	}
+
+	if book.Title != newbook.Title {
+		book.Title = newbook.Title
+		change = true
+	}
+	if book.Author != newbook.Author {
+		book.Author = newbook.Author
+		change = true
+	}
+	if book.Rating != newbook.Rating {
+		book.Rating = newbook.Rating
+		change = true
+	}
+
+	if change {
+		db.Save(&book)
+		return c.SendString("Book successfully updated")
+	} else {
+		return c.SendString("No changes made")
+	}
+
+}
+
 func DeleteBook(c *fiber.Ctx) error {
 	id := c.Params("id")
 	db := database.DBConn
